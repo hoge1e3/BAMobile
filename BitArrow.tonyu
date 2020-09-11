@@ -1,0 +1,17 @@
+native $;
+native BARunner;
+
+waitFor( $.getScript($baRunner) );
+//print("Loaded",BARunner);
+runner=waitFor(BARunner.create{
+    width:1,height:1,
+    bitarrowTop:$bitarrowTop
+});
+sendEvent("ready");
+$("iframe").hide();
+\openProjectManager() {
+    return runner.openProjectSel().then \(pm) {
+        projectManager=pm;
+        return pm;
+    };
+}

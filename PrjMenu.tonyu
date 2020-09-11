@@ -1,0 +1,30 @@
+native setTimeout;
+native Tonyu;
+"field strict";
+var prj:Project=prj||$curPrj;
+
+$d=new DotConsole{font=$pat_font_b, row=floor($keyTop/16)};
+$keyPad=new KeyPad;
+print(prj);
+var buf=[
+"PROJECT ",//+prj.name,
+""];
+var fileNames=waitFor(prj.getFileNames());
+for( var fileName of fileNames) {
+    //if (f.ext()!==".tonyu") continue;
+    buf.push("OPEN_FILE>"+fileName);
+}
+buf.push("NEW_FILE>");
+$c=new Cursor{x:8,y:8,pitch:16,c:$d, keyPad:$keyPad,buf,direct:this,prj};   
+$keyPad.cursor=$c;
+
+\proc(cmd) {
+    //print(cmd);
+    var pnp=/^(NEW|OPEN)_FILE>\s*(\w+)/;
+    var m;
+    m=pnp.exec(cmd);
+    if (m) {
+        var fileName=m[2];//prj.workDir.rel(m[2]+".tonyu");
+        loadPage(EditPage,{prj, editFile: fileName});
+    }
+}

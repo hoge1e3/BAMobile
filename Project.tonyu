@@ -1,0 +1,45 @@
+extends TObject;
+includes FileMod;
+"field strict";
+var storeDir;
+//var storeDirRoot=file("projects");
+var workDir=file("../user/");
+\name {
+    return storeDir.name().replace(/\/$/,"");   
+}
+\load() {
+    workDir.mkdir();
+    storeDir.mkdir();
+    for (var f of workDir.listFiles()) {
+        f.rm();
+    }
+    for (var f of storeDir.listFiles()) {
+        var dst=workDir.rel(f.relPath(storeDir));
+        dst.copyFrom(f);
+    }
+}
+\clean() {
+    return $currentProject.compiler.clean().then(\(r) {
+        //print("Succ",r);  
+        //loadPage(PrjMenu) {prj};
+    },\(e) {
+            //print("Err",e);  
+        if (e && e.src && typeof e.src.name=="function" &&
+        typeof e.row=="number" && typeof e.col=="number") {
+            new Mesg{text:/*e.src.name()+":"+e.row+":"+e.col+" - "+*/e.message};
+        }
+    });
+}
+\save() {
+    workDir.mkdir();
+    storeDir.mkdir();
+    for (var f of workDir.listFiles()) {
+        var dst=storeDir.rel(f.relPath(workDir));
+        dst.copyFrom(f);
+    }
+}
+\saveFile(fInWork,cont) {
+    fInWork.text(cont);
+    var fInStore=storeDir.rel(fInWork.relPath(workDir));
+    fInStore.text(cont);
+}

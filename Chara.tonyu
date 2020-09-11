@@ -1,0 +1,9 @@
+x=100;
+y=200;
+while(x<400) {
+    x+=2;
+    y+=0.1;
+    rotation+=2;
+    update();
+}
+die();

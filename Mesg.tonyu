@@ -1,0 +1,10 @@
+x=$screenWidth;
+y=100;
+size=16;
+fillStyle="yellow";
+align="left";
+while(x>-500) {
+    x-=4;
+    update();
+}
+die();

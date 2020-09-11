@@ -1,0 +1,39 @@
+"field strict";
+var prj:Project,editFile;
+var editor=waitFor(prj.openFile(editFile));
+//$lastEditor=editor;
+//if (!editFile.exists()) editFile.text("");
+$d=new DotConsole{font=$pat_font_b, row=floor($keyTop/16)};
+$keyPad=new KeyPad;
+$c=new Cursor{x:8,y:8,pitch:16,c:$d, keyPad:$keyPad,editor, prj};   
+$keyPad.cursor=$c;
+new Button{
+    top:0,text:"sv",left:$screenWidth-$sz.w, width:$sz.w, alpha:128,
+    func:true,onClick=\{parallel("save");}
+};
+new Button{
+    top:0,text:"Rn",left:$screenWidth-$sz.w*2, width:$sz.w, alpha:128,
+    func:true,onClick:\{parallel("run");}
+};
+\save() {
+    call($c,"save");
+    loadPage(PrjMenu) {prj};    
+}
+\run(){
+    var info;
+    call($c,"save");
+    try {
+        var result=waitFor(editor.run{fullScr:1});
+    //print(result.url);
+        var openB=new Button{text:"Open",top:100,onClick:\{
+                $WebPage.openNewWindow(result.url);
+                openB.die();
+        }};
+    } catch(e) {
+        info=e.info;
+        if (info) {
+            new Mesg{text:info.mesg};
+            print(info);
+        }
+    }
+}

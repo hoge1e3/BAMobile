@@ -1,0 +1,47 @@
+"field strict";
+
+$Screen.resize(400,630);
+$sz={w:$screenWidth/6,h:$screenWidth/6-10};
+$keyTop=$screenHeight-$sz.h*6;
+$d=new DotConsole{font=$pat_font_b, row=floor($keyTop/16)};
+$d.print("Wait...");
+
+waitFor($Bitarrow.openProjectManager());
+var projects=$Bitarrow.projectManager.getItems();
+$keyPad=new KeyPad;
+$d.cls();
+//var prjDir=file("Projects/");
+//prjDir.mkdir();
+var prjs=[];
+var buf=[
+"MAIN MENU",
+""];
+
+for( var prj of projects) {
+    //var prj=new Project{storeDir:pd};
+    prjs.push(prj);
+    buf.push("OPEN_PRJ>"+prj.name);
+}
+buf.push("NEW_PRJ>");
+$c=new Cursor{x:8,y:8,pitch:16,c:$d, keyPad:$keyPad,buf,direct:this};   
+$keyPad.cursor=$c;
+
+\proc(cmd) {
+    //print(cmd);
+    var pnp=/^(NEW|OPEN)_PRJ>\s*(\w+)/;
+    var m=pnp.exec(cmd);
+    if (m) {
+        $d.cls();
+        $d.locate(0,0);
+        $d.print("LOADING...");
+        var isNew=m[1]==="NEW";
+        var name=m[2];
+        if (isNew) {
+            $curPrj=waitFor($Bitarrow.projectManager.create(name,"tonyu"));
+        } else {
+            $curPrj=waitFor($Bitarrow.projectManager.open(name));
+        }
+        loadPage(PrjMenu) {prj:$curPrj};
+    }
+    
+}

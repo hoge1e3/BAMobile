@@ -1,0 +1,173 @@
+"field strict";
+var cursor;
+$keys={};
+//$d.locate(2,2);
+//$d.print("TEST");
+$caps=false;
+new Button{
+    top:$keyTop,text:"Aa",left:0,width:$sz.w, 
+    func:true, onClick:alphaMode
+};
+new Button{
+    top:$keyTop,text:"1+",left:$sz.w*1,width:$sz.w, 
+    func:true, onClick:numMode
+};
+new Button{
+    top:$keyTop,left:$sz.w*2,width:$sz.w, 
+    text:"Ed",
+    func:true, onClick:editMode
+};
+
+new Button{
+    top:$keyTop,left:$sz.w*3,width:$sz.w, 
+    //height:$sz.h, 
+    text:"←",key:"left", autoRepeat:30,
+    ctrl:true, func:true, onClick: \{cursor.moveBy(-1,0);}
+};
+new Button{
+    top:$keyTop,left:$sz.w*4,width:$sz.w, 
+    //height: $sz.h, 
+    text:"→",key:"right", autoRepeat:30,
+    ctrl:true, func:true,  onClick: \{cursor.moveBy(1,0);}
+};
+        
+new Button{
+    top:$keyTop,text:"BS",left:$sz.w*5,width:$sz.w, 
+    func:true,onClick=\{$c.bs();},autoRepeat:30
+};
+new Button{
+    left:$screenWidth-$sz.w,
+    width:$sz.w, top:$screenHeight-$sz.h,
+    height:$sz.h, autoRepeat:30,
+    text:"En", key:"enter", ctrl:true,func:true, onClick: \{cursor.enter();}
+};
+new Button{
+    left:$screenWidth-$sz.w*2,
+    width:$sz.w, top:$screenHeight-$sz.h,
+    height:$sz.h, autoRepeat:30,
+    text:"␣", 
+    key:"space", ctrl:true,func:true, onClick: \{cursor.keyin(" ");}
+};
+if ($debugger) {
+    $debugger.on("runtimeError") \(e) {
+        if (e.stack && e.stack[0] && typeof e.stack[0].lineNumber==="number") {
+            //print("RE",e.stack[0].fileName,e.stack[0].lineNumber);
+            new Mesg{text:e.stack[0].fileName+":"+
+            e.stack[0].lineNumber+":"+e.stack[0].columnNumber+" - "+e.message};
+        }
+    };
+}
+editMode();
+\editMode() {
+    $curMode="edit";
+    for (var b of $frontLayer.all(Button)) {
+        if (!b.func) b.die();
+    }
+    var ck={
+        top:$keyTop+$sz.h,
+        left:300,
+        sz:$sz
+    };
+    $keys={};
+    Object.assign($keys){
+        up: new Button{
+            width:ck.sz.w, height:ck.sz.h, autoRepeat:30,
+            left:ck.left, top:ck.top,text:"↑",key:"up",
+            ctrl:true, onClick: \{cursor.moveBy(0,-1);}
+        },  
+        down: new Button{
+            width:ck.sz.w, height:ck.sz.h, autoRepeat:30,
+            left:ck.left,top:ck.top+ck.sz.h*2,text:"↓",key:"down",
+            ctrl:true, onClick: \{cursor.moveBy(0,1);}
+        },  
+        left: new Button{
+            width:ck.sz.w, height:ck.sz.h, 
+            left:ck.left-ck.sz.w/2,
+            top:ck.top+ck.sz.h,
+            text:"←",/*key:"left",*/ autoRepeat:30,
+            ctrl:true, onClick: \{cursor.moveBy(-1,0);}
+        },  
+        right: new Button{
+            left:ck.left+ck.sz.w/2, height:ck.sz.h,
+            width:ck.sz.w, top:ck.top+ck.sz.h ,
+            text:"→",/*key:"right",*/ autoRepeat:30,
+            ctrl:true, onClick: \{cursor.moveBy(1,0);}
+        },
+        /*En: new Button{
+            left:$screenWidth-ck.sz.w,
+            width:ck.sz.w, top:$screenHeight-ck.sz.h,
+            height:ck.sz.h, autoRepeat:30,
+            text:"En", key:"enter", ctrl:true,onClick: \{cursor.enter();}
+        }*/
+    };
+}
+\alphaMode() {
+    if ($curMode=="alpha") $caps=!$caps; else $caps=false;
+    $curMode="alpha";
+    for (var b of $frontLayer.all(Button)) {
+        if (!b.func) b.die();
+    }
+    var a={
+        top:$keyTop+$sz.h,
+        left:0,
+        sz:$sz
+    };
+    $keys={};
+    
+    for(var i=0;i<28;i++) {
+        var ch=String.fromCharCode(i+($caps?65:97));
+        switch(i) {
+            case 26:ch="$";break;
+            case 27:ch="_";break;
+            case 28:ch="␣";break;
+            case 29:ch="En";break;
+        }
+        $keys[ch]=new Button{
+            left:a.left+(i%6)*a.sz.w,
+            width:a.sz.w, top:a.top+floor(i/6)*a.sz.h,
+            height:a.sz.h,
+            text:ch, key:ch, ctrl:i>=29,
+            onClick=\(b) { cursor.keyin(b.text); }
+        };
+    }
+}
+
+\numMode() {
+    if ($curMode=="num") $caps=!$caps; else $caps=false;
+    $curMode="num";
+    for (var b of $frontLayer.all(Button)) {
+        if (!b.func) b.die();
+    }
+    var a={
+        top:$keyTop+$sz.h,
+        left:0,
+        sz:$sz
+    };
+    $keys={};
+    var k=[
+    "0","1","2","3","4","/",
+    "5","6","7","8","9","*",
+    "!","<","=",">","%","-",
+    ";",".",",","&","|","+",
+    "{}","()","[]","\"","␣","En",
+    ];
+    if ($caps) {
+        k=[
+        "0","1","2","3","4","/",
+        "5","6","7","8","9","*",
+        "@","#","^","~","\\","-",
+        "?",":",",",".","`","+",
+        "{","(","[","'","␣","En",
+        ];
+    }
+    for(var i=0;i<28;i++) {
+        var ch=k[i];
+        $keys[k[i]]=new Button{
+            left:a.left+(i%6)*a.sz.w,
+            width:a.sz.w, top:a.top+floor(i/6)*a.sz.h,
+            height:a.sz.h,
+            text:ch, key:ch, ctrl:i>=29,
+            onClick=\(b) { cursor.keyin(b.text); }
+        };
+    }
+}

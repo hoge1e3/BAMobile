@@ -1,0 +1,112 @@
+extends Actor;
+"field strict";
+
+var padding, left, top ,width, height, text, fillStyle, strokeStyle;
+var clickedStyle, effect, savedEffect, disabled, disabledStrokeStyle, key,autoRepeat;
+var onClick;
+var _clicked,_arth;
+\new(options) {
+    options.layer=options.layer||$frontLayer;
+    super(options);
+    fillStyle=fillStyle||"rgb(179,255,142)";
+    strokeStyle=strokeStyle||"black";
+    clickedStyle=clickedStyle||"white";
+    disabledStrokeStyle=disabledStrokeStyle||"#ddd";
+    alpha=typeof(alpha)=="number"?alpha:255;
+    padding= typeof(padding)=="number"?padding:5;
+    width = width || $screenWidth-100;
+    height = height || 50;
+    left=typeof(left)=="number"?left:50;
+}
+if (key) {
+    on("keyDown",key) \(keyEvent) {
+        doStartClick();
+        keyEvent.on("up",doEndClick);
+    };
+}
+on("touch") \(touchEvent) {
+    var f=touchEvent.finger;
+    doStartClick();
+    f.on("end",doEndClick);
+};
+\doStartClick(){
+    _clicked=$frameCount;
+    fireEvent("click");
+    if (typeof onClick==="function") onClick(this);
+    if (autoRepeat) {
+        if (_arth) _arth.kill();
+        _arth=parallel("procAR");
+    }
+    doEffect();
+}
+\doEndClick() {
+    fireEvent("release");
+    _clicked=0;  
+    undoEffect();
+    if (_arth) _arth.kill();
+}
+\procAR() {
+    updateEx(autoRepeat);
+    while(true) {
+        onClick(this);
+        update();
+    }
+}
+
+/*\checkTouch() {
+    for (i=0 ; i<2; i++) {
+        if ($touches[i].touched>0 && inRect($touches[i])) {
+            return $touches[i].touched;
+        }
+    }
+    if (key) return getkey(key);
+    return 0;
+}*/
+\getCrashRect() {
+    return {x:left+width/2,y:top+height/2,width, height};
+}
+/*\inRect(p) {
+    p=$Screen.convert(p,layer);
+    return p.x>=left && p.x<=left+width && p.y>=top && p.y<=top+height;
+}*/
+\draw(c) {
+    c.globalAlpha=alpha/255;
+    c.fillStyle=fillStyle ? fillStyle+"" : "gray";
+    c.strokeStyle=strokeStyle ? strokeStyle+"" : "black";
+    if (disabled) c.strokeStyle=disabledStrokeStyle+"";
+    c.fillRect(left, top, width, height);
+    c.strokeRect(left, top, width, height);
+    var size=height-padding*2;
+    var f=c.font.replace(/^[0-9]+px /,"");
+    c.font=size+"px "+f;//monospace";
+    c.textBaseline="top";
+    c.fillStyle=clicked?clickedStyle+"":
+    disabled?disabledStrokeStyle+"":strokeStyle+"";
+    var r=c.measureText(text);
+    c.fillText(text, left+width/2-r.width/2, top+padding);
+}
+\doEffect() {
+    if (!effect) return;
+    savedEffect={};
+    for (var k,v in effect) {
+        if (k==="move") {
+            savedEffect.x=x;
+            savedEffect.y=y;
+            x+=v.x;
+            y+=v.y;
+        } else {
+            savedEffect[k]=this[k];
+            this[k]=v;
+        }
+    }
+}
+\undoEffect() {
+    if (!savedEffect) return;
+    for (var k,v in savedEffect) {
+        this[k]=v;
+    }
+}
+\clicked {
+    if (!_clicked) return 0;
+    return $frameCount-_clicked+1;
+}

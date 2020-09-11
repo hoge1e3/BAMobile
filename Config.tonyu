@@ -1,0 +1,5 @@
+extends TObject;
+
+$bitarrowTop="http://example.com/bitarrow/";
+$baRunner=$bitarrowTop+"js/gen/BARunner.js";
+

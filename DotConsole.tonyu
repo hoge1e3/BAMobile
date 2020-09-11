@@ -1,0 +1,95 @@
+extends Panel;
+"field strict";
+var size,row,col,cx,cy,mat,font;
+\new(p) {
+    p=p||{};
+    p.size=p.size||16;
+    p.width=p.width||$screenWidth;
+    p.height=p.height||$screenHeight;
+    p.row=p.row||floor(p.height/p.size);
+    p.col=p.col||floor(p.width/p.size);
+    p.width=p.col*p.size;
+    p.height=p.row*p.size;
+    super(p);
+    cx=0;cy=0;
+    fillStyle="white";
+    mat=new Matrix;
+}
+
+\locate(x,y) {
+    cx=x;cy=y;
+}
+
+\print(s) {
+    for (var i=0;i<s.length;i++) {
+        var ch=s.charCodeAt(i);
+        putchar(ch);
+    }
+}
+\putchar(ch) {
+    if (ch!==10) {
+        poke(cx,cy,ch);
+        cx++;
+    }
+    if (cx>=col || ch===10) {
+        cx=0;
+        cy++;
+        if (cy>=row) {
+            scroll();
+            cy=row-1;
+        }
+    }   
+}
+\cls() {
+    for (var i=0;i<row;i++) {
+        for (var j=0;j<col;j++) {
+            poke(j,i,0);
+        }
+    }
+    cx=cy=0;
+}
+\poke(cx,cy,ch) {
+    if (mat.get(cx,cy)===ch) return;
+    if (cx<0 || cx>=col || cy<0 || cy>=row) return;
+    var ctx=context;
+    ctx.save();
+    ctx.textBaseline="top";
+    ctx.font=size+"px Monospace";
+    ctx.beginPath();
+    ctx.moveTo(cx*size,cy*size);
+    ctx.lineTo((cx+1)*size,cy*size);
+    ctx.lineTo((cx+1)*size,(cy+1)*size);
+    ctx.lineTo(cx*size,(cy+1)*size);
+    ctx.closePath();
+    ctx.clip();
+    ctx.clearRect(cx*size,cy*size,size,size);
+    var pImg=$imageList[ch+font];
+    if (ch<128 && pImg) {
+        ctx.drawImage(
+        pImg.image, pImg.x, pImg.y, pImg.width, pImg.height,
+        cx*size, cy*size, size, size);
+        ctx.globalCompositeOperation="source-in";
+        ctx.fill();
+    } else {
+        ctx.fillText(String.fromCharCode(ch),cx*size,cy*size);
+    }
+    mat.set(cx,cy,ch);
+    ctx.restore();
+}
+\peek(cx,cy) {
+    return mat.get(cx,cy);
+}
+\scroll() {
+    var nm=new Matrix;
+    for (var x,y,c in mat) {
+        if (y>0) nm.set(x,y-1,c);
+    }
+    mat=nm;
+    context.save();
+    context.globalCompositeOperation="copy";
+    context.drawImage(image,0,size,width,height-size,0,0,width,height-size);
+    context.restore();
+}
+\defaultLayer{
+    return $frontLayer;
+}

@@ -1,0 +1,95 @@
+"field strict";
+var c:DotConsole;
+var prj;//=f||file("../Chara.tonyu");
+var editor;
+var buf=(editor? editor.getContent().split("\n") : (buf||[]) );
+var sx=0,sy=0;
+var direct;
+fillStyle="#ddd";
+alpha=128;
+var pitch=16;
+var tx=0,ty=0;
+width=height=pitch;
+remap();
+\save() {
+    waitFor(editor.input(cont));
+}
+\cont {
+    return buf.join("\n");
+}
+\keyin(ch) {
+    while (buf.length<=ty) buf.push("");
+    while(buf[ty].length<tx) buf[ty]+=" ";
+    buf[ty]=buf[ty].substring(0,tx)+ch+buf[ty].substring(tx);
+    moveCur(tx+1,ty);
+    remap();
+}
+\bs() {
+    if (tx==0) {
+        if (ty>0) {
+            var nx=buf[ty-1].length;
+            buf[ty-1]+=buf[ty];
+            buf.splice(ty,1);
+            moveCur(nx,ty-1);
+            remap();
+        }
+    } else if (buf[ty] && buf[ty][tx-1]) {
+        buf[ty]=buf[ty].substring(0,tx-1)+buf[ty].substring(tx);
+        remap();
+        moveCur(tx-1,ty);
+    }
+}
+\enter() {
+    if (direct) {
+        if (buf[ty]) direct.parallel("proc",buf[ty]);
+        return;
+    }
+    while (buf.length<=ty) buf.push("");
+    var ind=getIndentSpace(buf[ty]);
+    var n=buf[ty].substring(0,tx);
+    buf.splice(ty+1,0,ind+buf[ty].substring(tx));
+    buf[ty]=n;
+    remap();
+    moveCur(ind.length,ty+1);
+}
+\getIndentSpace(line) {
+    var m=/^ */.exec(line);
+    return m[0];
+}
+\showCur() {
+    x=(tx-sx)*pitch+pitch/2;
+    y=(ty-sy)*pitch+pitch/2;
+}
+\chkKey(name) {
+    var b=$keys[name],v;
+    if (b) v=b.clicked;
+    else v=getkey(name);
+    return v==1 || v>30;
+}
+nowait \remap() {
+    for (var i=0;i<c.row;i++) {
+        var line=buf[sy+i];
+        for (var j=0;j<c.col;j++) {
+            if (line && line[sx+j]) c.poke(j,i,line.charCodeAt(sx+j));
+            else c.poke(j,i,0);
+        }
+    }
+}
+\inScreen() {
+    return clamped(tx,sx,sx+c.col-1)==0 && clamped(ty,sy,sy+c.row-1)==0;
+}
+\moveCur(x,y) {
+    tx=clamp(x,0,1024);ty=clamp(y,0,buf.length);
+    chkScroll();
+    showCur();
+}
+\moveBy(dx,dy) {
+    //print(dx,dy);
+    moveCur(tx+dx,ty+dy);
+}
+\chkScroll() {
+    if (inScreen()) return;
+    sx-=clamped(tx,sx,sx+c.col-1);
+    sy-=clamped(ty,sy,sy+c.row-1);
+    remap();
+}

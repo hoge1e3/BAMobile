@@ -1,0 +1,5 @@
+$config=new Config;
+$Bitarrow=new BitArrow;
+waitEvent($Bitarrow,"ready");
+
+loadPage(SysMenu);
