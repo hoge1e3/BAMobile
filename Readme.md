@@ -8,7 +8,7 @@ Runs with [Tonyu System 2](https://www.tonyu.jp)
 
 - Host Bitarrow instance in your Web Server
   - use branch 'babel'
-- Download this zip
+- Download zip file of this repository 
 - Import the zip file to Tonyu System 2
 - Open Config.tonyu and set variables
   - $bitarrowTop  -> URL of your Bitarrow instance
