@@ -1,8 +1,8 @@
 * BAMobile
 
-Code [[Bitarrow>https://github.com/hoge1e3/jslesson]] via Mobile Phone.
+Code [Bitarrow](https://github.com/hoge1e3/jslesson) via Mobile Phone.
 
-Runs with [[Tonyu System 2>https://www.tonyu.jp]]
+Runs with [Tonyu System 2](https://www.tonyu.jp)
 
 * Setup
 
